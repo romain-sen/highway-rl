@@ -45,6 +45,7 @@ config = {
     "render_agent": True,
     "offscreen_rendering": False,
     "disable_collision_checks": True,
+    # "offroad_terminal": True,
 }
 
 
