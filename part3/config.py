@@ -1,5 +1,6 @@
 from highway_env.envs import IntersectionEnv
 
+
 # Config part three, env intersection
 config = {
     # might switch to kinematics if algo don't converge
