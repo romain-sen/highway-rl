@@ -25,5 +25,7 @@ config = {
     "centering_position": [0.5, 0.5],
     "scaling": 5.5 * 1.3,
     "collision_reward": IntersectionEnv.default_config()['collision_reward'],
-    "normalize_reward": False
+    "normalize_reward": False,
+    "simulation_frequency": 15,
+    "policy_frequency": 5,
 }
