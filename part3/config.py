@@ -12,7 +12,7 @@ config = {
             "scaling": 1.75,
         },
     "action": {
-            "type": "ContinuousAction",
+            "type": "DiscreteMetaAction",
             "longitudinal": True,
             "lateral": True
         },
