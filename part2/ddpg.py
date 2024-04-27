@@ -73,10 +73,7 @@ class DDPGAgent():
 
         action = torch.clip(action, -1, 1)
 
-        if eval:
-            return action.cpu().detach().numpy()
-        else: 
-            return action.cpu().detach().numpy()[0]
+        return action.cpu().detach().numpy()[0]
     
     def reset(self):
         self.ou_noise.reset()

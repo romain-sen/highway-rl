@@ -23,7 +23,7 @@ import os
 # print('\n')
 # summary(critic, [(4, 64, 64), (2,)])
 
-env = gym.make("intersection-v0", render_mode="rgb_array")
+env = gym.make("racetrack-v0", render_mode="rgb_array")
 env.unwrapped.configure(config)
 
 
@@ -48,6 +48,9 @@ for n_iter in tqdm(range(1, NB_EPISODES+1)):
     while not done:
         action = ddpg_agent.get_action(state)
         next_state, reward, done, truncated, info = env.step(action)
+        if not info['rewards']['on_road_reward']: # for racetrack-v0 env
+            done = True
+            reward = -1
         done = int(done or truncated) 
         next_state = ddpg_agent.preprocess_state(next_state)
         ddpg_agent.save(state, action, reward, next_state, done)
