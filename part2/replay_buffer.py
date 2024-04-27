@@ -1,5 +1,6 @@
 from collections import deque, namedtuple
 import random 
+import torch
 
 
 
@@ -27,10 +28,15 @@ class ReplayBuffer:
         states, actions, rewards, next_states, dones = [], [], [], [], []
         samples = random.sample(self.buffer, k=batch_size)
         for sample in samples:
-            states.append(sample.state)
-            actions.append(sample.action)
-            rewards.append(sample.reward)
-            next_states.append(sample.next_state)
-            dones.append(sample.dones)
-        
+            states.append(torch.tensor(sample.state))
+            actions.append(torch.tensor(sample.action)[None, ...])
+            rewards.append(torch.tensor(sample.reward)[None, None, ...])
+            next_states.append(torch.tensor(sample.next_state))
+            dones.append(torch.tensor(sample.done)[None, None, ...])
+
+        states = torch.concat(states).type(torch.FloatTensor)
+        actions = torch.concat(actions).type(torch.FloatTensor)
+        rewards = torch.concat(rewards).type(torch.FloatTensor)
+        next_states = torch.concat(next_states).type(torch.FloatTensor)
+        dones = torch.concat(dones).type(torch.FloatTensor)
         return states, actions, rewards, next_states, dones 

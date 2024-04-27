@@ -4,14 +4,19 @@ from torch.nn import functional as F
 
 
 class Actor(nn.Module):
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, device="cpu", *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
 
-        self.conv1 = nn.Conv2d(4, 4, 5, 2) # no padding as car in middle of image
-        self.conv2 = nn.Conv2d(4, 8, 5, 2, padding=2) # kernel_size = 5
+        if torch.cuda.is_available() and device != 'cpu':
+            self.cuda()
+            
+        self.device = device
+
+        self.conv1 = nn.Conv2d(4, 4, 5, 2).to(device=self.device) # no padding as car in middle of image
+        self.conv2 = nn.Conv2d(4, 8, 5, 2, padding=2).to(device=self.device) # kernel_size = 5
         # self.drop = nn.Dropout2d()
-        self.fc_1 = nn.Linear(1800, 256)   
-        self.fc_2 = nn.Linear(256, 2)
+        self.fc_1 = nn.Linear(1800, 256).to(device=self.device) 
+        self.fc_2 = nn.Linear(256, 2).to(device=self.device)
     
     def forward(self, state):
         assert state.dim() == 4 # (BS, C, W, H)
@@ -28,27 +33,30 @@ class Actor(nn.Module):
 
 
 class Critic(nn.Module):
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, device="cpu", *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
 
+        if torch.cuda.is_available() and device != 'cpu':
+            self.cuda()
+            
+        self.device = device
+
         # Action head
-        self.act_fc1 = nn.Linear(2, 16)
-        self.act_fc2 = nn.Linear(16, 16)
+        self.act_fc1 = nn.Linear(2, 16).to(device=self.device)
+        self.act_fc2 = nn.Linear(16, 16).to(device=self.device)
 
         # State head
-        self.conv1 = nn.Conv2d(4, 4, 5, 2) # no padding as car in middle of image
-        self.conv2 = nn.Conv2d(4, 8, 5, 2, padding=2) # kernel_size = 5
+        self.conv1 = nn.Conv2d(4, 4, 5, 2).to(device=self.device) # no padding as car in middle of image
+        self.conv2 = nn.Conv2d(4, 8, 5, 2, padding=2).to(device=self.device) # kernel_size = 5
         # self.drop = nn.Dropout2d()
-        self.fc_1 = nn.Linear(1800, 256)   
-        self.fc_2 = nn.Linear(256, 32)
+        self.fc_1 = nn.Linear(1800, 256).to(device=self.device)  
+        self.fc_2 = nn.Linear(256, 32).to(device=self.device)
 
         # Output network
-        self.out_fc1 = nn.Linear(48, 128)
-        self.out_fc2 = nn.Linear(128, 128)
-        self.out_fc3 = nn.Linear(128, 1)
-
-
-    
+        self.out_fc1 = nn.Linear(48, 128).to(device=self.device)
+        self.out_fc2 = nn.Linear(128, 128).to(device=self.device)
+        self.out_fc3 = nn.Linear(128, 1).to(device=self.device)
+        
     def forward(self, state, action):
         assert state.dim() == 4 # (BS, C, W, H)
         assert action.dim() == 2 # (BS, A)

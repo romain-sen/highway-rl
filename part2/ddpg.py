@@ -9,16 +9,22 @@ from torch import nn
 class DDPGAgent():
     def __init__(self, batch_size=64, gamma=0.95, tau=1e-3, actor_lr=1e-4, critic_lr=1e-3, epsilon_start=1, epsilon_end=0.05, epsilon_decay=1e-6, n_time_steps=10_000, n_learn_updates=3):
         
+        # Device
+        if torch.cuda.is_available(): 
+            self.device = "cuda"
+        else:
+            self.device = "cpu"
+
         # Actor
-        self.actor = Actor()
-        self.target_actor = Actor()
+        self.actor = Actor(device=self.device)
+        self.target_actor = Actor(device=self.device)
         self.target_actor.load_state_dict(self.actor.state_dict())
         self.actor_lr = actor_lr
         self.actor_optimizer = optim.Adam(self.actor.parameters(), lr=self.actor_lr)
 
         # Critic
-        self.critic = Critic()
-        self.target_critic = Critic()
+        self.critic = Critic(device=self.device)
+        self.target_critic = Critic(device=self.device)
         self.target_critic.load_state_dict(self.critic.state_dict())
         self.critic_lr = critic_lr
         self.critic_criterion = nn.MSELoss()
@@ -39,9 +45,6 @@ class DDPGAgent():
         self.tau = tau
         self.n_time_steps = n_time_steps # number of time steps before updating network parameters
         self.n_learn_updates = n_learn_updates # number of updates per learning step
-
-        # Device
-        self.device = "cuda" if torch.cuda.is_available() else "cpu"
     
 
     def preprocess_state(self, state):
@@ -63,17 +66,17 @@ class DDPGAgent():
 
     def get_action(self, state, eval=False):
         
-        action = self.actor.forward(state)
+        action = self.actor.forward(state.to(device=self.device))
 
         if not eval:
-            action += self.ou_noise.sample() * self.epsilon
+            action += self.ou_noise.sample().to(device=self.device) * self.epsilon
 
         action = torch.clip(action, -1, 1)
 
         if eval:
-            return action.detach().numpy()
+            return action.cpu().detach().numpy()
         else: 
-            return action.detach().numpy()[0]
+            return action.cpu().detach().numpy()[0]
     
     def reset(self):
         self.ou_noise.reset()
@@ -87,6 +90,7 @@ class DDPGAgent():
 
     def train_policy(self):
         states, actions, rewards, next_states, dones = self.buffer.sample(self.batch_size)  
+        states, actions, rewards, next_states, dones = states.to(device=self.device), actions.to(device=self.device), rewards.to(device=self.device), next_states.to(device=self.device), dones.to(device=self.device)
 
         next_actions = self.target_actor.forward(next_states)
         target_q_values = rewards + self.gamma * (1-dones) * self.target_critic.forward(next_states, next_actions)
@@ -96,7 +100,7 @@ class DDPGAgent():
         self.critic.zero_grad()
 
         pred_q_values = self.critic.forward(states, actions)
-        critic_loss = self.critic_criterion(pred_q_values, target_q_values)
+        critic_loss = self.critic_criterion(pred_q_values, target_q_values).type(torch.FloatTensor)
         critic_loss.backward()
         self.critic_optimizer.step()
 
@@ -113,7 +117,4 @@ class DDPGAgent():
             target_critic_params.data.copy_(self.tau * critic_params.data + (1.0 - self.tau) *  target_critic_params.data)
         
         for actor_params, target_actor_params in zip(self.actor.parameters(), self.target_actor.parameters()):
-            target_actor_params.data.copy_self(self.tau * actor_params.data + (1.0 - self.tau) *  target_actor_params.data)
-
-
-
+            target_actor_params.data.copy_(self.tau * actor_params.data + (1.0 - self.tau) *  target_actor_params.data)

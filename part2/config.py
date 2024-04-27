@@ -15,9 +15,10 @@ config = {
             "longitudinal": True,
             "lateral": True
         },
-    "simulation_frequency": 15,
+    "simulation_frequency": 10,
     "policy_frequency": 5,
-    "duration": 300,
+    "duration": 30,
+    "offroad_terminal": True,
     "collision_reward": -1,
     "lane_centering_cost": 4,
     "action_reward": -0.2,
