@@ -26,13 +26,18 @@ import os
 env = gym.make("racetrack-v0", render_mode="rgb_array")
 env.unwrapped.configure(config)
 
+SAVE_PATH = "RL/highway-rl/part2/trained_policy/"
+NB_EPISODES = 10_000 
+average_end_score = 300.
 
 ddpg_agent = DDPGAgent()
 ddpg_agent.reset()
+device = ddpg_agent.device
 
-SAVE_PATH = "RL/highway-rl/part2/trained_policy/"
-NB_EPISODES = 10_000 
-average_end_score = 100.
+checkpoint_actor = torch.load(os.path.join(SAVE_PATH, "actor_20000.h5"), map_location=device)
+ddpg_agent.actor.load_state_dict(checkpoint_actor)
+checkpoint_critic = torch.load(os.path.join(SAVE_PATH, "critic_20000.h5"), map_location=device)
+ddpg_agent.critic.load_state_dict(checkpoint_critic)
 
 scores_window = deque(maxlen=50)
 scores = []
@@ -43,14 +48,19 @@ for n_iter in tqdm(range(1, NB_EPISODES+1)):
     score = 0
     t = 0
     state = env.reset()
+    done = not state[1]['rewards']['on_road_reward']
     state = ddpg_agent.preprocess_state(state)
-    done = False
+
     while not done:
         action = ddpg_agent.get_action(state)
         next_state, reward, done, truncated, info = env.step(action)
-        if not info['rewards']['on_road_reward']: # for racetrack-v0 env
+        if not info['rewards']['on_road_reward'] or info['speed']<0 : # for racetrack-v0 env
             done = True
             reward = -1
+        
+        speed = min(10, info['speed'])
+        reward += 0.1*speed - 0.5 
+
         done = int(done or truncated) 
         next_state = ddpg_agent.preprocess_state(next_state)
         ddpg_agent.save(state, action, reward, next_state, done)

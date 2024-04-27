@@ -26,15 +26,20 @@ for n_iter in tqdm(range(1, NB_EPISODES+1)):
     score = 0
     t = 0
     state = env.reset()
+    done = not state[1]['rewards']['on_road_reward']
     state = ddpg_agent.preprocess_state(state)
-    done = False
+    
     while not done:
         env.render()
         action = ddpg_agent.get_action(state, eval=True)
         next_state, reward, done, truncated, info = env.step(action)
-        if not info['rewards']['on_road_reward']:
+        if not info['rewards']['on_road_reward'] or info['speed']<0 :
             done = True
             reward = -1
+        
+        speed = min(10, info['speed'])
+        reward += 0.1*speed - 0.5 
+        
         done = int(done or truncated) 
         state = ddpg_agent.preprocess_state(next_state)
         score += reward

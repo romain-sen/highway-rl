@@ -7,7 +7,7 @@ from torch import nn
 
 
 class DDPGAgent():
-    def __init__(self, batch_size=64, gamma=0.95, tau=1e-3, actor_lr=1e-4, critic_lr=1e-3, epsilon_start=1, epsilon_end=0.05, epsilon_decay=1e-6, n_time_steps=10_000, n_learn_updates=3):
+    def __init__(self, batch_size=64, gamma=0.95, tau=1e-3, actor_lr=1e-4, critic_lr=1e-3, epsilon_start=1, epsilon_end=0.05, epsilon_decay=1e-4, n_time_steps=10_000, n_learn_updates=3):
         
         # Device
         if torch.cuda.is_available(): 
@@ -43,6 +43,7 @@ class DDPGAgent():
         # Algorithm parameters
         self.gamma = gamma
         self.tau = tau
+        # not used (but should be)
         self.n_time_steps = n_time_steps # number of time steps before updating network parameters
         self.n_learn_updates = n_learn_updates # number of updates per learning step
     
