@@ -14,12 +14,12 @@ The project is divided into three main parts:
 - **Part 2: Continuous Actions**
 
   - Configuration of an environment for continuous actions.
-  - Implementation of an algorithm of choice, possibly using code from lab sessions.
+  - Implement an algorithm of choice, possibly using code from lab sessions.
   - Comparison of results with Highway environment using discrete actions.
 
 - **Part 3: Stable Baselines Reference Implementations**
-  - Utilization of the StableBaselines library to train existing algorithms on a chosen environment.
-  - Experimentation to study various aspects of the task and algorithm, such as generalization, hyperparameter impact, safety, etc.
+  - Utilization of the StableBaselines library to train PPO and DQN.
+  - Experimentation to study various aspects of the task and algorithm, such as generalization on different environments, and hyperparameter tuning using Optuna (the file called optuna_100000.zip is an example of a tuned model.
 
 ## Project Structure
 
@@ -44,4 +44,4 @@ Each part folder contains the necessary code and documentation to replicate the 
 
 ## Report
 
-The project report, along with individual reports from each group member, can be found on edunao website.
+The project report and individual reports from each group member can be found on the edunao website.
